@@ -8,7 +8,7 @@ require "rack/cache"
 require "rack/cache/metastore"
 require "rack/cache/entitystore"
 require "redis-store"
-require "activesupport"
+require "active_support"
 require "cache/rails/redis_store"
 require "cache/sinatra/redis_store"
 
