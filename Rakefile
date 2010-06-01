@@ -1,4 +1,5 @@
 $:.unshift 'lib'
+require 'rubygems'
 require 'rake'
 require 'rake/testtask'
 require 'rake/rdoctask'
@@ -9,17 +10,18 @@ task :default => "spec:suite"
 begin
   require "jeweler"
   Jeweler::Tasks.new do |gemspec|
-    gemspec.name        = "redis-store"
+    gemspec.name        = "#{ENV["GEM_PREFIX"]}redis-store"
     gemspec.summary     = "Rack::Session, Rack::Cache and cache Redis stores for Ruby web frameworks."
     gemspec.description = "Rack::Session, Rack::Cache and cache Redis stores for Ruby web frameworks."
     gemspec.email       = "guidi.luca@gmail.com"
     gemspec.homepage    = "http://github.com/jodosha/redis-store"
     gemspec.authors     = [ "Luca Guidi" ]
+    gemspec.executables = [ ]
   end
 
   Jeweler::GemcutterTasks.new
 rescue LoadError
-  puts "Jeweler not available. Install it with: sudo gem install jeweler" 
+  puts "Jeweler not available. Install it with: sudo gem install jeweler"
 end
 
 namespace :spec do
@@ -44,14 +46,26 @@ Spec::Rake::SpecTask.new(:rcov_run) do |t|
   t.rcov = true
 end
 
+namespace :redis_cluster do
+  desc "Starts the redis_cluster"
+  task :start do
+    result = RedisClusterRunner.start_detached
+    raise("Could not start redis-server, aborting.") unless result
+  end
+
+  desc "Stops the redis_cluster"
+  task :stop do
+    RedisClusterRunner.stop
+  end
+end
+
 # courtesy of http://github.com/ezmobius/redis-rb team
 load "tasks/redis.tasks.rb"
 def invoke_with_redis_cluster(task_name)
   begin
-    result = RedisClusterRunner.start_detached
-    raise("Could not start redis-server, aborting.") unless result
+    Rake::Task["redis_cluster:start"].invoke
     Rake::Task[task_name].invoke
   ensure
-    RedisClusterRunner.stop
+    Rake::Task["redis_cluster:stop"].invoke
   end
 end

@@ -10,7 +10,7 @@ module Merb
       #   RedisStore.new :servers => ["example.com:23682/1"] # => host: example.com, port: 23682, db: 1
       #   RedisStore.new :servers => ["localhost:6379/0", "localhost:6380/0"] # => instantiate a cluster
       def initialize(config = {})
-        @data = RedisFactory.create config[:servers]
+        @data = Redis::Factory.create config[:servers]
       end
 
       def writable?(key, parameters = {}, conditions = {})
@@ -18,12 +18,12 @@ module Merb
       end
 
       def read(key, parameters = {}, conditions = {})
-        @data.get normalize(key, parameters), conditions
+        @data.marshalled_get normalize(key, parameters), conditions
       end
 
       def write(key, data = nil, parameters = {}, conditions = {})
         if writable?(key, parameters, conditions)
-          method = conditions && conditions[:unless_exist] ? :set_unless_exists : :set
+          method = conditions && conditions[:unless_exist] ? :marshalled_setnx : :marshalled_set
           @data.send method, normalize(key, parameters), data, conditions
         end
       end
@@ -37,15 +37,15 @@ module Merb
       end
 
       def exists?(key, parameters = {})
-        @data.key? normalize(key, parameters)
+        @data.exists normalize(key, parameters)
       end
 
       def delete(key, parameters = {})
-        @data.delete normalize(key, parameters)
+        @data.del normalize(key, parameters)
       end
 
       def delete_all
-        @data.flush_db
+        @data.flushdb
       end
 
       def delete_all!

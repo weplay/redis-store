@@ -13,8 +13,8 @@ module Rack
         end
 
         after :each do
-          @store.cache.flush_all
-          @entity_store.cache.flush_all
+          @store.cache.flushall
+          @entity_store.cache.flushall
         end
 
         it "should have the class referenced by homonym constant" do
@@ -23,16 +23,14 @@ module Rack
 
         it "should resolve the connection uri" do
           cache = Rack::Cache::MetaStore::Redis.resolve(uri("redis://127.0.0.1")).cache
-          cache.should be_kind_of(::MarshaledRedis)
-          cache.host.should == "127.0.0.1"
-          cache.port.should == 6379
-          cache.db.should == 0
+          cache.should be_kind_of(::Redis::MarshaledClient)
+          cache.to_s.should == "Redis Client connected to 127.0.0.1:6379 against DB 0"
 
           cache = Rack::Cache::MetaStore::Redis.resolve(uri("redis://127.0.0.1:6380")).cache
-          cache.port.should == 6380
+          cache.to_s.should == "Redis Client connected to 127.0.0.1:6380 against DB 0"
 
           cache = Rack::Cache::MetaStore::Redis.resolve(uri("redis://127.0.0.1/13")).cache
-          cache.db.should == 13
+          cache.to_s.should == "Redis Client connected to 127.0.0.1:6379 against DB 13"
         end
 
         # Low-level implementation methods ===========================================

@@ -8,7 +8,7 @@ class App
   def set(key, value)
     @values[key] = value
   end
-  
+
   def get(key)
     @values[key]
   end
@@ -38,28 +38,23 @@ module Sinatra
 
       it "should accept connection params" do
         redis = instantiate_store
-        redis.host.should == "127.0.0.1"
-        redis.port.should == 6379
-        redis.db.should == 0
+        redis.to_s.should == "Redis Client connected to 127.0.0.1:6379 against DB 0"
 
         redis = instantiate_store "localhost"
-        redis.host.should == "localhost"
-        
+        redis.to_s.should == "Redis Client connected to localhost:6379 against DB 0"
+
         redis = instantiate_store "localhost:6380"
-        redis.host.should == "localhost"
-        redis.port.should == 6380
+        redis.to_s.should == "Redis Client connected to localhost:6380 against DB 0"
 
         redis = instantiate_store "localhost:6380/13"
-        redis.host.should == "localhost"
-        redis.port.should == 6380
-        redis.db.should == 13
+        redis.to_s.should == "Redis Client connected to localhost:6380 against DB 13"
       end
 
       it "should instantiate a ring" do
         store = instantiate_store
-        store.should be_kind_of(MarshaledRedis)
+        store.should be_kind_of(Redis::MarshaledClient)
         store = instantiate_store ["localhost:6379/0", "localhost:6379/1"]
-        store.should be_kind_of(DistributedMarshaledRedis)
+        store.should be_kind_of(Redis::DistributedMarshaled)
       end
 
       it "should read the data" do
@@ -92,7 +87,7 @@ module Sinatra
 
       it "should read raw data" do
         with_store_management do |store|
-          store.read("rabbit", :raw => true).should == "\004\bU:\017OpenStruct{\006:\tname\"\nbunny"
+          store.read("rabbit", :raw => true).should == Marshal.dump(@rabbit)
         end
       end
 

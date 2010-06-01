@@ -17,28 +17,23 @@ module ActiveSupport
 
       it "should accept connection params" do
         redis = instantiate_store
-        redis.host.should == "127.0.0.1"
-        redis.port.should == 6379
-        redis.db.should == 0
+        redis.to_s.should == "Redis Client connected to 127.0.0.1:6379 against DB 0"
 
         redis = instantiate_store "localhost"
-        redis.host.should == "localhost"
-        
+        redis.to_s.should == "Redis Client connected to localhost:6379 against DB 0"
+
         redis = instantiate_store "localhost:6380"
-        redis.host.should == "localhost"
-        redis.port.should == 6380
+        redis.to_s.should == "Redis Client connected to localhost:6380 against DB 0"
 
         redis = instantiate_store "localhost:6380/13"
-        redis.host.should == "localhost"
-        redis.port.should == 6380
-        redis.db.should == 13
+        redis.to_s.should == "Redis Client connected to localhost:6380 against DB 13"
       end
 
       it "should instantiate a ring" do
         store = instantiate_store
-        store.should be_kind_of(MarshaledRedis)
+        store.should be_kind_of(Redis::MarshaledClient)
         store = instantiate_store ["localhost:6379/0", "localhost:6379/1"]
-        store.should be_kind_of(DistributedMarshaledRedis)
+        store.should be_kind_of(Redis::DistributedMarshaled)
       end
 
       it "should read the data" do
@@ -57,7 +52,7 @@ module ActiveSupport
       it "should write the data with expiration time" do
         with_store_management do |store|
           store.write "rabbit", @white_rabbit, :expires_in => 1.second
-          store.read("rabbit").should === @white_rabbit ; sleep 2
+          store.read("rabbit").should == @white_rabbit ; sleep 2
           store.read("rabbit").should be_nil
         end
       end
@@ -65,13 +60,13 @@ module ActiveSupport
       it "should not write data if :unless_exist option is true" do
         with_store_management do |store|
           store.write "rabbit", @white_rabbit, :unless_exist => true
-          store.read("rabbit").should === @rabbit
+          store.read("rabbit").should == @rabbit
         end
       end
 
       it "should read raw data" do
         with_store_management do |store|
-          store.read("rabbit", :raw => true).should == "\004\bU:\017OpenStruct{\006:\tname\"\nbunny"
+          store.read("rabbit", :raw => true).should == Marshal.dump(@rabbit)
         end
       end
 
@@ -154,11 +149,12 @@ module ActiveSupport
           store.fetch("rub-a-dub").should === "Flora de Cana"
           store.fetch("rabbit", :force => true).should be_nil # force cache miss
           store.fetch("rabbit", :force => true, :expires_in => 1.second) { @white_rabbit }
-          store.fetch("rabbit").should === @white_rabbit ; sleep 2
+          store.fetch("rabbit").should == @white_rabbit 
+          sleep 2
           store.fetch("rabbit").should be_nil
         end
       end
-      
+
       private
         def instantiate_store(addresses = nil)
           ActiveSupport::Cache::RedisStore.new(addresses).instance_variable_get(:@data)

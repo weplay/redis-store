@@ -1,9 +1,15 @@
-# use ezmobius/redis-rb HEAD
-gem "redis-rb", "0.1", :git => "git://github.com/ezmobius/redis-rb.git"
+source :gemcutter
+gem "redis", "2.0.0"
 
 # testing gems
-gem "rspec",                :only => :testing
-gem "rack-cache",           :only => :testing
-gem "activesupport",        :only => :testing
-gem "merb",                 :only => :testing
-
+group :testing do
+  gem "ruby-debug"
+  gem "rspec"
+  gem "rack", "1.0.0"
+  gem "rack-cache"
+  gem "activesupport", "2.3.5"
+  gem "actionpack", "2.3.5"
+  gem "merb"
+  gem "jeweler"
+  gem "git"
+end

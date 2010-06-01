@@ -1,8 +1,8 @@
 require "redis"
-require "dist_redis"
-require "redis/redis_factory"
-require "redis/marshaled_redis"
-require "redis/distributed_marshaled_redis"
+require "redis/distributed"
+require "redis/factory"
+require "redis/marshaled_client"
+require "redis/distributed_marshaled"
 
 # Cache store
 if defined?(Sinatra)
@@ -21,6 +21,9 @@ if defined?(Rack::Session)
   require "rack/session/redis"
   if defined?(Merb)
     require "rack/session/merb"
+  end
+  if defined?(Rails)
+    require "rack/session/rails"
   end
 end
 

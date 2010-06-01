@@ -10,28 +10,28 @@ module ActiveSupport
       #   RedisStore.new "example.com:23682/1" # => host: example.com, port: 23682, db: 1
       #   RedisStore.new "localhost:6379/0", "localhost:6380/0" # => instantiate a cluster
       def initialize(*addresses)
-        @data = RedisFactory.create(addresses)
+        @data = Redis::Factory.create(addresses)
       end
 
       def write(key, value, options = nil)
         super
-        method = options && options[:unless_exist] ? :set_unless_exists : :set
+        method = options && options[:unless_exist] ? :marshalled_setnx : :marshalled_set
         @data.send method, key, value, options
       end
 
       def read(key, options = nil)
         super
-        @data.get key, options
+        @data.marshalled_get key, options
       end
 
       def delete(key, options = nil)
         super
-        @data.delete key
+        @data.del key
       end
 
       def exist?(key, options = nil)
         super
-        @data.key? key
+        @data.exists key
       end
 
       # Increment a key in the store.
@@ -57,7 +57,7 @@ module ActiveSupport
       #   cache.read "rabbit", :raw => true       # => "1"
       def increment(key, amount = 1)
         log "increment", key, amount
-        @data.incr key, amount
+        @data.incrby key, amount
       end
 
       # Decrement a key in the store
@@ -83,22 +83,22 @@ module ActiveSupport
       #   cache.read "rabbit", :raw => true       # => "-1"
       def decrement(key, amount = 1)
         log "decrement", key, amount
-        @data.decr key, amount
+        @data.decrby key, amount
       end
 
       # Delete objects for matched keys.
       #
       # Example:
-      #   cache.delete_matched "rab*"
+      #   cache.del_matched "rab*"
       def delete_matched(matcher, options = nil)
         super
-        @data.keys(matcher).each { |key| @data.delete key }
+        @data.keys(matcher).each { |key| @data.del key }
       end
 
       # Clear all the data from the store.
       def clear
         log "clear", nil, nil
-        @data.flush_db
+        @data.flushdb
       end
 
       def stats
