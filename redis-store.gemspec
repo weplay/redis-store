@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Luca Guidi"]
-  s.date = %q{2010-05-21}
+  s.date = %q{2010-11-11}
   s.description = %q{Rack::Session, Rack::Cache and cache Redis stores for Ruby web frameworks.}
   s.email = %q{guidi.luca@gmail.com}
   s.extra_rdoc_files = [
@@ -34,7 +34,6 @@ Gem::Specification.new do |s|
      "lib/redis/distributed_marshaled.rb",
      "lib/redis/factory.rb",
      "lib/redis/marshaled_client.rb",
-     "lib/redis/namespace.rb",
      "redis-store.gemspec",
      "spec/cache/merb/redis_store_spec.rb",
      "spec/cache/rails/redis_session_store_spec.rb",
